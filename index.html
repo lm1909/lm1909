@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Max Lutz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Basic Reset and Global Styles */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center; /* Vertically center the .container */
+            justify-content: center; /* Horizontally center the .container */
+            min-height: 100vh;
+            margin: 0;
+            /* Tailwind classes on <body> tag will handle background and text color */
+            padding: 1rem; /* Outer gutter for content */
+        }
+
+        /* Main content container */
+        .container {
+            display: flex;
+            /* Mobile First: Emoji above text */
+            flex-direction: column;
+            align-items: center; /* Center items horizontally in column mode */
+            gap: 1.5rem; /* Gap between emoji and text on mobile */
+            width: 100%; /* Use full width available from body padding */
+            max-width: 500px; /* Max width for mobile content for readability */
+            text-align: center; /* Center text within .name by default on mobile */
+        }
+
+        /* Emoji container */
+        .name {
+            /* Large emoji on mobile. clamp(min, preferred, max) */
+            /* Increased minimum and preferred size for mobile */
+            font-size: clamp(9rem, 30vw, 14rem); /* Previously: clamp(8rem, 25vw, 12rem) */
+            line-height: 1; /* Keep emoji compact vertically */
+            font-weight: 600;
+            color: #e2e8f0; /* Light color for emoji, from original */
+        }
+
+        /* Details/text container */
+        .details {
+            width: 100%; /* Take full width of .container */
+            /* Responsive font size for mobile details */
+            /* Increased minimum and preferred size for mobile */
+            font-size: clamp(1rem, 3vw, 1.25rem); /* Previously: clamp(0.9rem, 2.5vw, 1.1rem) */
+            line-height: 1.7; /* Increased for better readability of justified text */
+            color: #a0aec0; /* Muted color for text, from original */
+            text-align: justify; /* Justified text on mobile as requested */
+        }
+
+        .details p {
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .details strong {
+            color: #cbd5e0; /* Slightly brighter color for strong text */
+        }
+
+        /* Combined styling for all link-like elements in .details */
+        .details a,
+        .email-link, /* For the dynamically generated mailto: link */
+        .email-link-interactive { /* For the initial clickable span */
+            color: #a0aec0; /* Match detail text color */
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.2s ease-in-out, text-decoration 0.2s ease-in-out;
+        }
+
+        .details a:hover,
+        .email-link:hover,
+        .email-link-interactive:hover {
+            color: #cbd5e0; /* Brighter on hover */
+            text-decoration: underline;
+        }
+
+        /* Desktop Styles - Applied when screen width is 1024px or more */
+        @media (min-width: 1024px) {
+            .container {
+                flex-direction: row; /* Emoji left, text right */
+                justify-content: center; /* Ensures content within 70vw block is centered if not filling */
+                width: 70vw; /* Container takes 70% of viewport width */
+                max-width: 1400px; /* Max width for very large screens */
+                gap: 3rem; /* Increased gap for desktop layout */
+                padding: 2rem; /* Add some internal padding to the container block on desktop */
+                text-align: left; /* Default text align for children to be left */
+            }
+
+            .name {
+                /* Even larger emoji on desktop */
+                font-size: clamp(12rem, 15vw, 18rem); /* Unchanged from previous version */
+                flex-shrink: 0; /* Prevent emoji from shrinking if text is long */
+            }
+
+            .details {
+                /* Larger text on desktop */
+                font-size: clamp(1.1rem, 2vw, 1.5rem); /* Unchanged from previous version */
+                text-align: left; /* Text aligned left on desktop */
+                flex-grow: 1; /* Allow details to take up remaining space */
+                min-width: 0; /* Important for flex item sizing */
+                max-width: 65ch; /* Optimal text width for readability */
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-50"> <div class="container">
+        <div class="name">
+            👋
+        </div>
+        <div class="details">
+            <p><strong>currently:</strong> researching quantum algorithms + many-body physics as PhD student @ <a href="https://www.mpq.mpg.de/en" target="_blank" rel="noopener noreferrer">Max Planck Institute of Quantum Optics</a> (advisor: Ignacio Cirac)</p>
+            <p><strong>previously:</strong> CS & physics in Munich & Oxford</p>
+            <p><strong>contact & links:</strong> <span id="email-placeholder"><span style="unicode-bidi:bidi-override; direction:rtl;">xa.mztul@liam</span></span><span id="email-link-separator"></span><a href="https://www.linkedin.com/in/lutzmaximilian" target="_blank" rel="noopener noreferrer">LinkedIn</a>, <a href="https://github.com/lm1909" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript to obfuscate and generate the email link
+        // This script does not need changes as it manipulates content, not styles.
+        window.onload = function() {
+            const emailPlaceholder = document.getElementById('email-placeholder');
+            const emailLinkSeparator = document.getElementById('email-link-separator');
+            const user = "mail";
+            const domainPart1 = "lutzm"; // Split domain for minor obfuscation
+            const domainPart2 = "ax";
+            const domain = domainPart1 + "." + domainPart2;
+            const emailAddress = user + "@" + domain;
+
+            const emailTriggerSpan = document.createElement('span');
+            emailTriggerSpan.textContent = emailAddress;
+            emailTriggerSpan.className = "email-link-interactive"; // Apply styling
+            emailTriggerSpan.title = "Click to make this a sendable email link (anti-bot measure)";
+
+            if(emailPlaceholder) {
+                emailPlaceholder.innerHTML = ''; // Clear the reversed text
+                emailPlaceholder.appendChild(emailTriggerSpan);
+            }
+
+            // Add a comma separator if other links follow the email
+            const nextLinkElement = document.querySelector('#email-link-separator + a');
+            if (emailLinkSeparator && nextLinkElement) {
+                emailLinkSeparator.textContent = ', ';
+            } else if (emailLinkSeparator) {
+                emailLinkSeparator.textContent = ''; // No separator if it's the last item
+            }
+
+            // Convert span to mailto link on click
+            if (emailTriggerSpan) {
+                emailTriggerSpan.addEventListener('click', function convertToMailto() {
+                    const mailtoLink = document.createElement('a');
+                    mailtoLink.href = "mailto:" + emailAddress;
+                    mailtoLink.textContent = emailAddress;
+                    mailtoLink.className = "email-link"; // Apply styling
+
+                    if(emailPlaceholder) {
+                        emailPlaceholder.innerHTML = ''; // Clear the span
+                        emailPlaceholder.appendChild(mailtoLink); // Add the actual link
+                    }
+                }, { once: true }); // Listener fires only once
+            }
+        };
+    </script>
+</body>
+</html>
