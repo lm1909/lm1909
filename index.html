@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>Max Lutz</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -20,7 +20,7 @@
             min-height: 100vh;
             margin: 0;
             /* Tailwind classes on <body> tag will handle background and text color */
-            padding: 1rem; /* Outer gutter for content */
+            padding: 1rem; /* Outer gutter for content, ensures .container doesn't touch screen edges */
         }
 
         /* Main content container */
@@ -28,32 +28,31 @@
             display: flex;
             /* Mobile First: Emoji above text */
             flex-direction: column;
-            align-items: center; /* Center items horizontally in column mode */
+            align-items: center; /* Center children (emoji, details) horizontally in column mode */
             gap: 1.5rem; /* Gap between emoji and text on mobile */
-            width: 100%; /* Use full width available from body padding */
+            width: 100%; /* Use full width available within body padding */
             max-width: 500px; /* Max width for mobile content for readability */
-            text-align: center; /* Center text within .name by default on mobile */
+            /* text-align: center; /* This was a general text-align for children, .details will now handle its own explicitly */
+            /* The body's flex properties handle the centering of this container */
         }
 
         /* Emoji container */
         .name {
-            /* Large emoji on mobile. clamp(min, preferred, max) */
-            /* Increased minimum and preferred size for mobile */
-            font-size: clamp(9rem, 30vw, 14rem); /* Previously: clamp(8rem, 25vw, 12rem) */
+            /* Emoji size for mobile, ~10% smaller than original mobile size */
+            font-size: clamp(8.1rem, 27vw, 12.6rem);
             line-height: 1; /* Keep emoji compact vertically */
             font-weight: 600;
-            color: #e2e8f0; /* Light color for emoji, from original */
+            color: #e2e8f0;
         }
 
         /* Details/text container */
         .details {
             width: 100%; /* Take full width of .container */
             /* Responsive font size for mobile details */
-            /* Increased minimum and preferred size for mobile */
-            font-size: clamp(1rem, 3vw, 1.25rem); /* Previously: clamp(0.9rem, 2.5vw, 1.1rem) */
-            line-height: 1.7; /* Increased for better readability of justified text */
-            color: #a0aec0; /* Muted color for text, from original */
-            text-align: justify; /* Justified text on mobile as requested */
+            font-size: clamp(1rem, 3vw, 1.25rem);
+            line-height: 1.7;
+            color: #a0aec0;
+            text-align: center; /* Changed from justify to center for mobile */
         }
 
         .details p {
@@ -62,14 +61,14 @@
         }
 
         .details strong {
-            color: #cbd5e0; /* Slightly brighter color for strong text */
+            color: #cbd5e0;
         }
 
         /* Combined styling for all link-like elements in .details */
         .details a,
-        .email-link, /* For the dynamically generated mailto: link */
-        .email-link-interactive { /* For the initial clickable span */
-            color: #a0aec0; /* Match detail text color */
+        .email-link,
+        .email-link-interactive {
+            color: #a0aec0;
             text-decoration: none;
             cursor: pointer;
             transition: color 0.2s ease-in-out, text-decoration 0.2s ease-in-out;
@@ -78,7 +77,7 @@
         .details a:hover,
         .email-link:hover,
         .email-link-interactive:hover {
-            color: #cbd5e0; /* Brighter on hover */
+            color: #cbd5e0;
             text-decoration: underline;
         }
 
@@ -86,24 +85,23 @@
         @media (min-width: 1024px) {
             .container {
                 flex-direction: row; /* Emoji left, text right */
-                justify-content: center; /* Ensures content within 70vw block is centered if not filling */
                 width: 70vw; /* Container takes 70% of viewport width */
                 max-width: 1400px; /* Max width for very large screens */
                 gap: 3rem; /* Increased gap for desktop layout */
                 padding: 2rem; /* Add some internal padding to the container block on desktop */
-                text-align: left; /* Default text align for children to be left */
+                text-align: left; /* Default text align for children to be left, this will apply to .name as well */
             }
 
             .name {
-                /* Even larger emoji on desktop */
-                font-size: clamp(12rem, 15vw, 18rem); /* Unchanged from previous version */
+                /* Emoji size for desktop, reverted to original larger desktop size */
+                font-size: clamp(12rem, 15vw, 18rem);
                 flex-shrink: 0; /* Prevent emoji from shrinking if text is long */
             }
 
             .details {
                 /* Larger text on desktop */
-                font-size: clamp(1.1rem, 2vw, 1.5rem); /* Unchanged from previous version */
-                text-align: left; /* Text aligned left on desktop */
+                font-size: clamp(1.1rem, 2vw, 1.5rem);
+                text-align: left; /* Text aligned left on desktop, overrides mobile's center */
                 flex-grow: 1; /* Allow details to take up remaining space */
                 min-width: 0; /* Important for flex item sizing */
                 max-width: 65ch; /* Optimal text width for readability */
@@ -111,7 +109,8 @@
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-50"> <div class="container">
+<body class="bg-slate-900 text-slate-50">
+    <div class="container">
         <div class="name">
             👋
         </div>
