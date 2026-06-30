@@ -38,6 +38,8 @@
 
         /* Emoji container */
         .name {
+            /* Use the OS's built-in emoji font so 👋 renders without any external dependency */
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
             /* Emoji size for mobile, ~10% smaller than original mobile size */
             font-size: clamp(8.1rem, 27vw, 12.6rem);
             line-height: 1; /* Keep emoji compact vertically */
