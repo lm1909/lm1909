@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Toric Code as a Hypergraph Product</title>
+<style>
+  :root{
+    --bg:#f7f4ee; --ink:#23201b; --muted:#6f685c; --rule:#e3ddd1; --paper:#fffdf8;
+    --xcheck:#2f6db5; --zcheck:#d2762b; --qubit:#4a4540; --error:#d23b3b;
+    --ahi:#0f8f7e; --bhi:#8a4fc4; --accent:#b8541f;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg); color:var(--ink); margin:0;
+    font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif; font-size:19px; line-height:1.6;}
+  .wrap{max-width:1080px; margin:0 auto; padding:58px 28px 120px}
+  h1{font-size:37px; line-height:1.13; letter-spacing:-.4px; margin:0 0 8px; text-align:center}
+  .lede{font-size:21px; color:var(--muted); margin:0 0 4px}
+  p{margin:13px 0}
+  .wrap > p{text-align:justify}
+  a{color:var(--accent)}
+  .fig{background:var(--paper); border:1px solid var(--rule); border-radius:14px; margin:26px 0 10px;
+    padding:18px 24px 16px; box-shadow:0 1px 0 #fff inset, 0 14px 34px -26px rgba(40,30,10,.5);
+    /* break out wider than the prose column, centred in the viewport */
+    width:min(1600px, 96vw); margin-left:calc(50% - min(1600px,96vw)/2);}
+  .figtitle{font-family:ui-sans-serif,system-ui,sans-serif; font-size:13px; letter-spacing:.04em;
+    text-transform:uppercase; color:var(--accent); font-weight:700; margin:0 0 10px}
+  .figbody{display:grid; grid-template-columns:minmax(210px,0.92fr) minmax(0,1.45fr) minmax(230px,1.08fr);
+    gap:16px 22px; align-items:stretch}
+  @media(max-width:880px){.figbody{grid-template-columns:1fr}}
+  .latpanel{min-width:0; display:flex; flex-direction:column}
+  /* ---- math panels: stretch to the figure's height ---- */
+  .mathpanel{background:#fbf7ef; border:1px solid var(--rule); border-radius:10px; padding:16px 18px;
+    display:flex; flex-direction:column; justify-content:space-between; gap:12px; text-align:center;}
+  .bchint{text-align:center; margin-bottom:12px; max-width:760px; margin-left:auto; margin-right:auto;
+    font-family:ui-sans-serif,system-ui,sans-serif; font-size:13px; color:var(--muted); line-height:1.5}
+  .result{font-family:ui-sans-serif,system-ui,sans-serif; font-size:14px; color:var(--accent); margin-top:6px}
+  .explain{font-family:ui-sans-serif,system-ui,sans-serif; font-size:13px; line-height:1.5; color:#544d40}
+  .explain .hint{display:block; margin-top:6px; color:var(--muted); font-style:italic; font-size:12.5px}
+  .mp-h{font-family:ui-sans-serif,system-ui,sans-serif; font-size:11.5px; letter-spacing:.07em;
+    text-transform:uppercase; color:var(--accent); font-weight:700; margin:14px 0 5px}
+  .mp-h:first-child{margin-top:0}
+  .cx{font-family:"Latin Modern Math","Cambria Math",Georgia,serif; font-size:17px; margin:6px 0;
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:4px}
+  .cx .lead{font-style:italic; font-weight:700; font-size:16px; margin-right:3px}
+  .arr{color:#c2b59c; font-size:17px}
+  .cxnote{font-family:ui-sans-serif,system-ui,sans-serif; font-size:11.5px; color:var(--muted); margin:-3px 0 6px 2px}
+  /* ∂-labelled arrow: symbol above a long arrow */
+  .darrow{display:inline-flex; flex-direction:column; align-items:center; line-height:.85; margin:0 2px; vertical-align:middle}
+  .darrow .dlab{font-style:italic; font-size:12px; color:var(--accent)}
+  .darrow .dline{font-size:20px; color:#9b8f78; margin-top:-2px}
+  .defs{font-family:"Latin Modern Math","Cambria Math",Georgia,serif; font-size:17px; line-height:1.95; margin-top:4px}
+  .defs > div{display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:5px}
+  .note{font-family:ui-sans-serif,system-ui,sans-serif; font-size:12px; color:var(--muted); margin-left:6px; font-style:normal}
+  .chain{font-family:ui-sans-serif,system-ui,sans-serif; font-size:15px; line-height:1.5}
+  .chain .lvl{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+  .chain .lbl{color:var(--muted); font-size:12.5px}
+  .chain .map{color:var(--muted); font-size:13px; margin:1px 0 1px 8px; display:flex; align-items:center; gap:6px}
+  .arrow{color:var(--muted); font-size:13px; margin-left:8px}
+  .term{font-family:"Latin Modern Math","Cambria Math",Georgia,serif; font-style:italic;
+    background:#fff; border:1px solid var(--rule); border-radius:6px; padding:1px 6px; cursor:pointer; white-space:nowrap}
+  .term:hover,.term.hl{background:#ffe9c9; border-color:#e0b270}
+  .term.tA{color:var(--ahi)} .term.tB{color:var(--bhi)} .term.tX{color:var(--xcheck)} .term.tZ{color:var(--zcheck)}
+  .mat{font-family:ui-monospace,Menlo,monospace; font-size:12px; color:var(--muted); text-align:center;
+    display:flex; gap:14px; justify-content:center; align-items:flex-start; flex-wrap:wrap}
+  .mat .matone > div:first-child{font-size:15px; margin-bottom:4px}
+  .mat table{border-collapse:collapse; margin:0 auto}
+  .mat td{width:22px; height:22px; text-align:center; color:#c4b69d; font-size:15px}
+  .mat td.one{color:var(--ink); font-weight:700}
+  .mat tr{cursor:pointer}
+  .mat tr.rowhi td, .mat tr.rowhov td{background:#d9f0ec}
+  .mat tr.rowhi td.one, .mat tr.rowhov td.one{background:#bfe6df; color:#0a5c52}
+  .mat td.cellhov{background:#bfe6df; color:#0a5c52}
+  .mat .axlbl{font-family:ui-sans-serif,system-ui,sans-serif; font-size:10.5px; color:var(--muted); margin-top:3px}
+  .factorrow{font-family:ui-sans-serif,system-ui,sans-serif; font-size:12.5px; color:var(--muted); margin:4px 0 2px}
+  .factorrow .term{font-size:13px; padding:0 5px}
+  .controls{display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; margin-top:8px;
+    font-family:ui-sans-serif,system-ui,sans-serif; font-size:13.5px; color:var(--muted)}
+  button.pill{font:inherit; font-size:13px; color:var(--ink); background:#fff; border:1px solid var(--rule);
+    border-radius:999px; padding:6px 13px; cursor:pointer}
+  button.pill:hover{border-color:#c9b9a0; background:#fdf8ee}
+  button.pill.on{background:var(--ink); color:#fff; border-color:var(--ink)}
+  .legend{display:flex; gap:6px 15px; flex-wrap:wrap; justify-content:center; font-family:ui-sans-serif,system-ui,sans-serif;
+    font-size:12.5px; color:var(--muted); margin:2px 0 8px}
+  .legend i{display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-1px; margin-right:5px}
+  .dot{border-radius:50%}
+  .tk{color:var(--accent); font-weight:700; cursor:ew-resize; border-bottom:1px dashed var(--accent);
+    padding:0 1px; user-select:none; font-variant-numeric:tabular-nums; touch-action:none}
+  .tk:hover{background:#f3e6d6}
+  svg{display:block; width:100%; height:auto; touch-action:none; overflow:visible}
+  .tip{font-family:ui-monospace,Menlo,monospace; font-size:13px; min-height:3.0em; color:var(--ink);
+    background:#fbf3e6; border:1px dashed #e2caa3; border-radius:8px; padding:9px 12px; margin-top:12px; white-space:pre-wrap}
+  .tip b.a{color:var(--ahi)} .tip b.b{color:var(--bhi)} .tip b.x{color:var(--xcheck)} .tip b.z{color:var(--zcheck)}
+  .cap{font-size:14px; color:var(--muted); margin-top:10px; line-height:1.5; font-family:ui-sans-serif,system-ui,sans-serif}
+  .footnote{font-size:15px; color:var(--muted); border-top:1px solid var(--rule); margin-top:48px; padding-top:16px}
+  code{background:#efe9dd; padding:1px 5px; border-radius:5px; font-size:.85em}
+  .formula{font-family:"Latin Modern Math","Cambria Math",Georgia,serif}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<p>It was discussed how classical linear codes and CSS codes can be understood as
+<em>chain complexes</em>, and how the <em>hypergraph product</em> allows one to construct a CSS code from
+two classical codes. As an illustration, we consider how the toric code can be understood as a hypergraph
+product of two repetition codes. Take them as 1-D chain complexes
+<span class="formula">A: A<sub>1</sub> &xrarr; A<sub>0</sub></span> and
+<span class="formula">B: B<sub>1</sub> &xrarr; B<sub>0</sub></span> &mdash; bits
+<span class="formula">A<sub>1</sub>,&thinsp;B<sub>1</sub></span> on the edges of a ring, checks
+<span class="formula">A<sub>0</sub>,&thinsp;B<sub>0</sub></span> on its vertices, boundary map
+<span class="formula">&part;<sub>A</sub>=H<sub>A</sub></span>. Their sizes:
+<span class="tk" id="tk-na" data-min="2" data-max="8">6</span> and
+<span class="tk" id="tk-nb" data-min="2" data-max="8">6</span>. The
+total product complex <span class="formula">C = A&otimes;B</span> is the toric code.</p>
+
+<div class="fig">
+  <div class="figbody">
+
+  <!-- ====== LEFT: input codes ====== -->
+  <div class="mathpanel inputpanel">
+    <div>
+      <div class="mp-h">Input: two repetition codes</div>
+      <div class="cx"><span class="lead" style="color:var(--ahi)">A</span>
+        <span class="arr">0</span><span class="arr">&xrarr;</span>
+        <span class="term tA" data-t="A1">A<sub>1</sub></span>
+        <span class="darrow"><span class="dlab">&part;<sub>A</sub></span><span class="dline">&xrarr;</span></span>
+        <span class="term tA" data-t="A0">A<sub>0</sub></span>
+        <span class="arr">&xrarr;</span><span class="arr">0</span></div>
+      <div class="cx"><span class="lead" style="color:var(--bhi)">B</span>
+        <span class="arr">0</span><span class="arr">&xrarr;</span>
+        <span class="term tB" data-t="B1">B<sub>1</sub></span>
+        <span class="darrow"><span class="dlab">&part;<sub>B</sub></span><span class="dline">&xrarr;</span></span>
+        <span class="term tB" data-t="B0">B<sub>0</sub></span>
+        <span class="arr">&xrarr;</span><span class="arr">0</span></div>
+    </div>
+    <div class="explain">
+      A repetition code on a ring: a <b>data bit</b> on every edge
+      (<span class="term tA" data-t="A1">A<sub>1</sub></span>), and a <b>parity check</b> on every vertex
+      (<span class="term tA" data-t="A0">A<sub>0</sub></span>) that reads the two bits on its edges and
+      demands they agree. The check matrix <b style="color:var(--ahi)">&part;<sub>A</sub>=H<sub>A</sub></b>
+      is exactly that rule: <b>one row per check</b>, a <b>1</b> for each bit it sums.
+      <span class="hint">Hover a matrix row &mdash; or a dot/edge on the axis &mdash; to see one parity check.</span>
+    </div>
+    <div class="mat" id="mat-host"></div>
+  </div>
+
+  <!-- ====== MIDDLE: the lattice ====== -->
+  <div class="latpanel">
+    <div id="fig-host"></div>
+  </div>
+
+  <!-- ====== RIGHT: total product complex ====== -->
+  <div class="mathpanel prodpanel">
+    <div>
+    <div class="mp-h">Output: total product complex&ensp;C = A &otimes; B</div>
+    <div class="cx"><span class="arr">0</span><span class="arr">&xrarr;</span>
+      <span class="term tZ" data-t="faces">C<sub>2</sub></span>
+      <span class="darrow"><span class="dlab">&part;<sub>2</sub></span><span class="dline">&xrarr;</span></span>
+      <span class="term" data-t="qubits">C<sub>1</sub></span>
+      <span class="darrow"><span class="dlab">&part;<sub>1</sub></span><span class="dline">&xrarr;</span></span>
+      <span class="term tX" data-t="verts">C<sub>0</sub></span>
+      <span class="arr">&xrarr;</span><span class="arr">0</span></div>
+    </div>
+    <div class="defs">
+      <div><span class="term tZ" data-t="faces">C<sub>2</sub> = A<sub>1</sub>&otimes;B<sub>1</sub></span>
+        <span class="note">faces &middot; <b style="color:var(--zcheck)">Z-checks</b></span></div>
+      <div><span class="term" data-t="qubits">C<sub>1</sub></span> =
+        <span class="term tA" data-t="qh">A<sub>1</sub>&otimes;B<sub>0</sub></span>
+        <span style="color:var(--muted)">&oplus;</span>
+        <span class="term tB" data-t="qv">A<sub>0</sub>&otimes;B<sub>1</sub></span>
+        <span class="note"><b>qubits</b></span></div>
+      <div><span class="term tX" data-t="verts">C<sub>0</sub> = A<sub>0</sub>&otimes;B<sub>0</sub></span>
+        <span class="note">vertices &middot; <b style="color:var(--xcheck)">X-checks</b></span></div>
+      <div style="margin-top:8px"><span style="white-space:nowrap">&part;<sub>2</sub> = [&thinsp;<span class="term tA" data-t="qh" data-via="I⊗∂_B">I&otimes;&part;<sub>B</sub></span>&thinsp;;&thinsp;<span class="term tB" data-t="qv" data-via="∂_A⊗I">&part;<sub>A</sub>&otimes;I</span>&thinsp;]</span>&ensp;<span style="white-space:nowrap">= H<sub>Z</sub><sup>T</sup></span></div>
+      <div><span style="white-space:nowrap">&part;<sub>1</sub> = [&thinsp;<span class="term tA" data-t="qh" data-via="∂_A⊗I">&part;<sub>A</sub>&otimes;I</span>&thinsp;&#124;&thinsp;<span class="term tB" data-t="qv" data-via="I⊗∂_B">I&otimes;&part;<sub>B</sub></span>&thinsp;]</span>&ensp;<span style="white-space:nowrap">= H<sub>X</sub></span></div>
+      <div id="result-line" class="result"></div>
+    </div>
+    <div class="explain">
+      Every cell of the grid is a <b>pair</b>: one piece of A times one piece of B. The boundary maps apply
+      <b style="color:var(--ahi)">&part;<sub>A</sub></b> and <b style="color:var(--bhi)">&part;<sub>B</sub></b>
+      <b>one factor at a time</b> &mdash; the <span class="formula">&otimes;I</span> copies the other factor
+      unchanged.
+      <span class="hint">Hover any term to highlight its objects, and its A, B factors on the axes.</span>
+    </div>
+  </div>
+
+  </div><!-- /figbody -->
+
+  <div class="legend">
+    <span><i class="dot" style="background:var(--xcheck)"></i>vertex / star (X)</span>
+    <span><i style="background:var(--zcheck)"></i>face / plaquette (Z)</span>
+    <span><i style="background:var(--qubit)"></i>qubit (edge)</span>
+    <span><i class="dot" style="background:var(--ahi)"></i>&part;<sub>A</sub> (x)</span>
+    <span><i class="dot" style="background:var(--bhi)"></i>&part;<sub>B</sub> (y)</span>
+  </div>
+  <div class="bchint">Each repetition code&rsquo;s boundary is shown on its axis &mdash; click the
+  <b style="color:var(--ahi)">&ldquo;↻ periodic (x)&rdquo;</b> /
+  <b style="color:var(--bhi)">&ldquo;periodic (y)&rdquo;</b> label to toggle that direction between
+  <b>periodic</b> (torus) and <b>open boundary</b> (dangling stubs).</div>
+
+  <div class="tip" id="fig-tip"></div>
+</div>
+
+<div class="footnote">
+  <p>An experiment for <a href="https://sites.google.com/view/rahul-trivedi/nat3045-2026-quantum-error-correction-and-fault-tolerance">NAT3045 &mdash; Quantum Error Correction and Fault Tolerance</a>,
+  inspired by Bret Victor&rsquo;s <a href="http://worrydream.com/ExplorableExplanations/">Explorable Explanations</a>
+  and <a href="http://worrydream.com/LadderOfAbstraction/">Up and Down the Ladder of Abstraction</a>.
+  Feedback welcome: <a id="contact-email" href="#" rel="nofollow">(enable JavaScript to show)</a>.</p>
+</div>
+
+</div>
+
+<script>
+"use strict";
+const SVGNS="http://www.w3.org/2000/svg";
+function E(t,a){const e=document.createElementNS(SVGNS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function svg(w,h){const s=E("svg",{viewBox:`0 0 ${w} ${h}`});s.setAttribute("width","100%");return s;}
+const cs=getComputedStyle(document.documentElement);
+const C={x:cs.getPropertyValue('--xcheck').trim(),z:cs.getPropertyValue('--zcheck').trim(),
+  q:cs.getPropertyValue('--qubit').trim(),err:cs.getPropertyValue('--error').trim(),
+  a:cs.getPropertyValue('--ahi').trim(),b:cs.getPropertyValue('--bhi').trim(),
+  rule:cs.getPropertyValue('--rule').trim(),muted:cs.getPropertyValue('--muted').trim(),
+  ink:cs.getPropertyValue('--ink').trim()};
+
+const S={nA:6,nB:6,pbcA:true,pbcB:true};
+const listeners=[]; function onChange(f){listeners.push(f);} function fire(){listeners.forEach(f=>f());}
+function makeTangle(el,key){
+  const min=+el.dataset.min,max=+el.dataset.max; el.dataset.tkey=key; el.textContent=S[key];
+  let sx=0,sv=0,drag=false;
+  function set(v){v=Math.max(min,Math.min(max,Math.round(v)));if(v!==S[key]){S[key]=v;
+    document.querySelectorAll('[data-tkey="'+key+'"]').forEach(n=>n.textContent=v);fire();}}
+  el.addEventListener('pointerdown',e=>{drag=true;sx=e.clientX;sv=S[key];el.setPointerCapture(e.pointerId);e.preventDefault();});
+  el.addEventListener('pointermove',e=>{if(drag)set(sv+(e.clientX-sx)/22);});
+  el.addEventListener('pointerup',()=>drag=false);
+  onChange(()=>{el.textContent=S[key];});
+}
+makeTangle(document.getElementById('tk-na'),'nA');
+makeTangle(document.getElementById('tk-nb'),'nB');
+
+// ---- boundary mode, per axis (S.pbcA, S.pbcB): periodic ring (toric) vs open line (rough) ----
+// vertices/checks are n per axis in BOTH modes; bits (edges) are n (ring) or n+1 (line, 2 dangling).
+// Rough keeps every star weight-4 (a dangling qubit supplies the 4th leg → X-checks complete);
+// boundary faces become partial → Z-checks partial.  Matches the notes' rough-boundary figure.
+function nbitsA(){return S.pbcA?S.nA:S.nA+1;}
+function nbitsB(){return S.pbcB?S.nB:S.nB+1;}
+// checks that A-bit i connects (endpoints of the edge); rough: dangling end bits touch one check
+function aAdjChecks(i){const n=S.nA;return S.pbcA?[i,(i+1)%n]:(i===0?[0]:i===n?[n-1]:[i-1,i]);}
+function bAdjChecks(j){const n=S.nB;return S.pbcB?[j,(j+1)%n]:(j===0?[0]:j===n?[n-1]:[j-1,j]);}
+// A-bits that check a sums (its two incident edges; rough: {a, a+1}, both always present)
+function aIncBits(a){const n=S.nA;return S.pbcA?[(a-1+n)%n,a]:[a,a+1];}
+function bIncBits(b){const n=S.nB;return S.pbcB?[(b-1+n)%n,b]:[b,b+1];}
+// star(a,b): ∂₁ qubits of vertex (X-check); open boundary stars are lighter (rough)
+function starQubits(a,b){const q=[];
+  aIncBits(a).forEach(i=>q.push({k:'hq',i,j:b,via:'A'}));   // ∂_A⊗I : ∂_A row a, copy at B-check b
+  bIncBits(b).forEach(j=>q.push({k:'vq',i:a,j,via:'B'}));   // I⊗∂_B : ∂_B row b, copy at A-check a
+  return q;}
+// face(i,j): ∂₂ qubits of plaquette (Z-check); always weight 4
+function faceQubits(i,j){const q=[];
+  bAdjChecks(j).forEach(b=>q.push({k:'hq',i,j:b,via:'B'}));
+  aAdjChecks(i).forEach(a=>q.push({k:'vq',i:a,j,via:'A'}));
+  return q;}
+function identTxt(k,i,j){
+  if(k==='vert')return [`A-check ${i}`,`B-check ${j}`,'star (X-check)','x'];
+  if(k==='face')return [`A-bit ${i}`,`B-bit ${j}`,'plaquette (Z-check)','z'];
+  if(k==='hq')return [`A-bit ${i}`,`B-check ${j}`,'qubit (horizontal)','q'];
+  return [`A-check ${i}`,`B-bit ${j}`,'qubit (vertical)','q'];
+}
+
+//================= engine =================
+function makeProductFigure(host,opts){
+  function render(){
+    const nA=S.nA,nB=S.nB, nbitA=nbitsA(), nbitB=nbitsB();
+    const s=Math.max(34,Math.min(56,Math.floor(330/Math.max(nA,nB))));
+    const ds=s*0.52;
+    const axAy=40, axBx=46, gx0=100, gy0=104;
+    const vx=i=>gx0+i*s, vy=j=>gy0+j*s;
+    const W=vx(nA-1)+s*0.75+22, H=vy(nB-1)+s*0.75+24;
+    const root=svg(W,H);
+    const all=[];
+    const reg=(el,base)=>{el.__base=base;base.call(el);all.push(el);return el;};
+    const V={},HQ={},VQ={},F={}; const axA={dot:[],seg:[]},axB={dot:[],seg:[]};
+    const types={verts:[],faces:[],qh:[],qv:[],A0:[],A1:[],B0:[],B1:[]};
+
+    // faces (Z-checks = A-bit × B-bit). periodic n×n; rough (n+1)×(n+1) incl. partial boundary faces
+    const fcx=i=>S.pbcA?vx(i)+0.5*s:gx0+(i-0.5)*s;
+    const fcy=j=>S.pbcB?vy(j)+0.5*s:gy0+(j-0.5)*s;
+    for(let i=0;i<nbitA;i++)for(let j=0;j<nbitB;j++){
+      const fx=fcx(i), fy=fcy(j);
+      const m=reg(E('rect',{x:fx-3.3,y:fy-3.3,width:6.6,height:6.6,transform:`rotate(45 ${fx} ${fy})`}),
+        function(){this.setAttribute('fill',C.z);this.setAttribute('opacity',0.4);this.setAttribute('stroke','none');});
+      m.dataset.k='face';m.dataset.i=i;m.dataset.j=j; root.appendChild(m);
+      const hit=E('circle',{cx:fx,cy:fy,r:8,fill:'transparent'}); hit.dataset.k='face';hit.dataset.i=i;hit.dataset.j=j; root.appendChild(hit);
+      F[i+'_'+j]=m; m.__hit=hit; types.faces.push(m);
+    }
+    // qubits + wrap stubs
+    function ql(k,i,j){const el=reg(E('line',{}),function(){this.setAttribute('stroke',C.q);this.setAttribute('stroke-width',2.6);
+      this.setAttribute('stroke-linecap','round');this.setAttribute('opacity',1);});el.dataset.k=k;el.dataset.i=i;el.dataset.j=j;return el;}
+    function placeStub(el,x1,y1,x2,y2){el.setAttribute('x1',x1);el.setAttribute('y1',y1);el.setAttribute('x2',x2);el.setAttribute('y2',y2);
+      // dotted wrap-qubits → the lattice glues like the periodic axes, without clutter
+      const b=el.__base;el.__base=function(){b.call(el);el.setAttribute('opacity',0.6);el.setAttribute('stroke-dasharray','1.5 3');};el.__base();}
+    function place(el,x1,y1,x2,y2){el.setAttribute('x1',x1);el.setAttribute('y1',y1);el.setAttribute('x2',x2);el.setAttribute('y2',y2);}
+    // horizontal qubits (A-bit i × B-check j): periodic wraps (dotted); rough has solid dangling stubs
+    for(let j=0;j<nB;j++)for(let i=0;i<nbitA;i++){const key=i+'_'+j;
+      if(S.pbcA){
+        if(i<nA-1){const e=ql('hq',i,j);place(e,vx(i),vy(j),vx(i+1),vy(j));root.appendChild(e);HQ[key]=[e];}
+        else{const e1=ql('hq',i,j),e2=ql('hq',i,j);placeStub(e1,vx(i),vy(j),vx(i)+ds,vy(j));placeStub(e2,vx(0)-ds,vy(j),vx(0),vy(j));root.appendChild(e1);root.appendChild(e2);HQ[key]=[e1,e2];}
+      }else{const e=ql('hq',i,j);
+        if(i===0)place(e,vx(0)-ds,vy(j),vx(0),vy(j));               // dangling left (solid)
+        else if(i===nA)place(e,vx(nA-1),vy(j),vx(nA-1)+ds,vy(j));   // dangling right
+        else place(e,vx(i-1),vy(j),vx(i),vy(j));                    // internal
+        root.appendChild(e);HQ[key]=[e];}
+      HQ[key].forEach(e=>types.qh.push(e));}
+    // vertical qubits (A-check i × B-bit j)
+    for(let i=0;i<nA;i++)for(let j=0;j<nbitB;j++){const key=i+'_'+j;
+      if(S.pbcB){
+        if(j<nB-1){const e=ql('vq',i,j);place(e,vx(i),vy(j),vx(i),vy(j+1));root.appendChild(e);VQ[key]=[e];}
+        else{const e1=ql('vq',i,j),e2=ql('vq',i,j);placeStub(e1,vx(i),vy(j),vx(i),vy(j)+ds);placeStub(e2,vx(i),vy(0)-ds,vx(i),vy(0));root.appendChild(e1);root.appendChild(e2);VQ[key]=[e1,e2];}
+      }else{const e=ql('vq',i,j);
+        if(j===0)place(e,vx(i),vy(0)-ds,vx(i),vy(0));               // dangling top
+        else if(j===nB)place(e,vx(i),vy(nB-1),vx(i),vy(nB-1)+ds);   // dangling bottom
+        else place(e,vx(i),vy(j-1),vx(i),vy(j));                    // internal
+        root.appendChild(e);VQ[key]=[e];}
+      VQ[key].forEach(e=>types.qv.push(e));}
+    function qpad(arr){arr.forEach(e=>{const p=E('line',{x1:e.getAttribute('x1'),y1:e.getAttribute('y1'),
+      x2:e.getAttribute('x2'),y2:e.getAttribute('y2'),stroke:'transparent','stroke-width':12,cursor:'pointer'});
+      p.dataset.k=e.dataset.k;p.dataset.i=e.dataset.i;p.dataset.j=e.dataset.j;root.appendChild(p);e.__hit=p;});}
+    Object.values(HQ).forEach(qpad);Object.values(VQ).forEach(qpad);
+    // vertices
+    for(let i=0;i<nA;i++)for(let j=0;j<nB;j++){
+      const c=reg(E('circle',{cx:vx(i),cy:vy(j)}),function(){this.setAttribute('r',5);this.setAttribute('fill','#fff');
+        this.setAttribute('stroke',C.x);this.setAttribute('stroke-width',2);this.setAttribute('opacity',1);});
+      c.dataset.k='vert';c.dataset.i=i;c.dataset.j=j;root.appendChild(c);
+      const hit=E('circle',{cx:vx(i),cy:vy(j),r:10,fill:'transparent',cursor:'pointer'});hit.dataset.k='vert';hit.dataset.i=i;hit.dataset.j=j;root.appendChild(hit);
+      V[i+'_'+j]=c;c.__hit=hit;types.verts.push(c);
+    }
+    // segment helper (one repetition-code bit on an axis) + clickable boundary label
+    function mkSeg(arr,kk,idx,x1,y1,x2,y2){
+      const seg=reg(E('line',{x1,y1,x2,y2}),function(){this.setAttribute('stroke',C.q);this.setAttribute('stroke-width',4.5);this.setAttribute('stroke-linecap','round');this.setAttribute('opacity',1);});
+      seg.dataset.kk=kk;seg.dataset.i=idx;root.appendChild(seg);
+      const sp=E('line',{x1,y1,x2,y2,stroke:'transparent','stroke-width':14,cursor:'pointer'});sp.dataset.kk=kk;sp.dataset.i=idx;root.appendChild(sp);seg.__hit=sp;arr[idx]=seg;}
+    function bcLabel(x,y,which,col,rot){
+      const per=which==='A'?S.pbcA:S.pbcB, ax=which==='A'?'x':'y';
+      const t=Object.assign(E('text',{x,y,'font-size':12,fill:per?col:C.muted,'text-anchor':'middle','font-family':'sans-serif','font-weight':'bold',cursor:'pointer','text-decoration':'underline'}),
+        {textContent:per?('↻ periodic ('+ax+')'):('open boundary ('+ax+')')});
+      if(rot)t.setAttribute('transform',`rotate(-90 ${x} ${y})`);
+      t.appendChild(Object.assign(E('title',{}),{textContent:'click to toggle this boundary: periodic ⟷ open'}));
+      t.addEventListener('click',()=>{if(which==='A')S.pbcA=!S.pbcA;else S.pbcB=!S.pbcB;fire();});
+      root.appendChild(t);}
+
+    // ---- top axis = code A ----
+    const aR=S.pbcA?vx(nA-1)+ds+2:vx(nA-1)+s*0.6;
+    root.appendChild(E('line',{x1:(S.pbcA?gx0-8:vx(0)-s*0.6),y1:axAy,x2:aR,y2:axAy,stroke:C.rule,'stroke-width':1.4}));
+    const aWrapY=axAy-22;
+    bcLabel((vx(0)+vx(nA-1))/2, aWrapY-4, 'A', C.a, false);
+    if(S.pbcA){ // dashed wrap arc (bit nA-1 joins check nA-1 back to check 0)
+      const aArc=reg(E('path',{d:`M ${vx(0)} ${axAy} C ${vx(0)} ${aWrapY} ${vx(nA-1)} ${aWrapY} ${vx(nA-1)} ${axAy}`,fill:'none'}),
+        function(){this.setAttribute('stroke',C.q);this.setAttribute('stroke-width',4.5);this.setAttribute('opacity',1);this.setAttribute('stroke-linecap','round');});
+      aArc.dataset.kk='Aseg';aArc.dataset.i=nA-1;root.appendChild(aArc);
+      const aArcPad=E('path',{d:aArc.getAttribute('d'),fill:'none',stroke:'transparent','stroke-width':14,cursor:'pointer'});
+      aArcPad.dataset.kk='Aseg';aArcPad.dataset.i=nA-1;root.appendChild(aArcPad);aArc.__hit=aArcPad;axA.seg[nA-1]=aArc;
+    }
+    root.appendChild(Object.assign(E('text',{x:aR+8,y:axAy+4,'font-size':12,fill:C.a,'font-family':'sans-serif','font-weight':'bold'}),{textContent:'A'}));
+    if(S.pbcA){
+      for(let i=0;i<nA-1;i++) mkSeg(axA.seg,'Aseg',i, vx(i)+s*0.18,axAy, vx(i+1)-s*0.18,axAy);
+    }else{ // open line with a dangling edge-stub past each end
+      mkSeg(axA.seg,'Aseg',0, vx(0)-s*0.55,axAy, vx(0)-s*0.18,axAy);
+      for(let i=1;i<=nA-1;i++) mkSeg(axA.seg,'Aseg',i, vx(i-1)+s*0.18,axAy, vx(i)-s*0.18,axAy);
+      mkSeg(axA.seg,'Aseg',nA, vx(nA-1)+s*0.18,axAy, vx(nA-1)+s*0.55,axAy);
+    }
+    axA.seg.forEach(e=>e&&types.A1.push(e));
+    for(let i=0;i<nA;i++){const d=reg(E('circle',{cx:vx(i),cy:axAy}),function(){this.setAttribute('r',4.5);this.setAttribute('fill','#fff');this.setAttribute('stroke',C.x);this.setAttribute('stroke-width',1.8);this.setAttribute('opacity',1);});
+      d.dataset.kk='Adot';d.dataset.i=i;root.appendChild(d);const dp=E('circle',{cx:vx(i),cy:axAy,r:9,fill:'transparent',cursor:'pointer'});dp.dataset.kk='Adot';dp.dataset.i=i;root.appendChild(dp);d.__hit=dp;axA.dot[i]=d;types.A0.push(d);}
+    // ---- left axis = code B ----
+    const bB=S.pbcB?vy(nB-1)+ds+2:vy(nB-1)+s*0.6;
+    root.appendChild(E('line',{x1:axBx,y1:(S.pbcB?gy0-8:vy(0)-s*0.6),x2:axBx,y2:bB,stroke:C.rule,'stroke-width':1.4}));
+    const bWrapX=axBx-22;
+    bcLabel(bWrapX-4, (vy(0)+vy(nB-1))/2, 'B', C.b, true);
+    if(S.pbcB){
+      const bArc=reg(E('path',{d:`M ${axBx} ${vy(0)} C ${bWrapX} ${vy(0)} ${bWrapX} ${vy(nB-1)} ${axBx} ${vy(nB-1)}`,fill:'none'}),
+        function(){this.setAttribute('stroke',C.q);this.setAttribute('stroke-width',4.5);this.setAttribute('opacity',1);this.setAttribute('stroke-linecap','round');});
+      bArc.dataset.kk='Bseg';bArc.dataset.i=nB-1;root.appendChild(bArc);
+      const bArcPad=E('path',{d:bArc.getAttribute('d'),fill:'none',stroke:'transparent','stroke-width':14,cursor:'pointer'});bArcPad.dataset.kk='Bseg';bArcPad.dataset.i=nB-1;root.appendChild(bArcPad);bArc.__hit=bArcPad;axB.seg[nB-1]=bArc;
+    }
+    root.appendChild(Object.assign(E('text',{x:axBx-3,y:bB+14,'font-size':12,fill:C.b,'font-family':'sans-serif','font-weight':'bold','text-anchor':'middle'}),{textContent:'B'}));
+    if(S.pbcB){
+      for(let j=0;j<nB-1;j++) mkSeg(axB.seg,'Bseg',j, axBx,vy(j)+s*0.18, axBx,vy(j+1)-s*0.18);
+    }else{
+      mkSeg(axB.seg,'Bseg',0, axBx,vy(0)-s*0.55, axBx,vy(0)-s*0.18);
+      for(let j=1;j<=nB-1;j++) mkSeg(axB.seg,'Bseg',j, axBx,vy(j-1)+s*0.18, axBx,vy(j)-s*0.18);
+      mkSeg(axB.seg,'Bseg',nB, axBx,vy(nB-1)+s*0.18, axBx,vy(nB-1)+s*0.55);
+    }
+    axB.seg.forEach(e=>e&&types.B1.push(e));
+    for(let j=0;j<nB;j++){const d=reg(E('circle',{cx:axBx,cy:vy(j)}),function(){this.setAttribute('r',4.5);this.setAttribute('fill','#fff');this.setAttribute('stroke',C.x);this.setAttribute('stroke-width',1.8);this.setAttribute('opacity',1);});
+      d.dataset.kk='Bdot';d.dataset.i=j;root.appendChild(d);const dp=E('circle',{cx:axBx,cy:vy(j),r:9,fill:'transparent',cursor:'pointer'});dp.dataset.kk='Bdot';dp.dataset.i=j;root.appendChild(dp);d.__hit=dp;axB.dot[j]=d;types.B0.push(d);}
+
+    host.innerHTML='';host.appendChild(root);
+    const api={nA,nB,s,V,HQ,VQ,F,axA,axB,types,root,all,clearAll(){all.forEach(el=>el.__base());}};
+    if(opts.wire)opts.wire(api);
+  }
+  onChange(render);
+  return {render};
+}
+
+//--- small ∂ matrices: rows = checks, cols = bits ---
+function renderMats(rowA,rowB){
+  const host=document.getElementById('mat-host');
+  function tbl(mat,n,nbit,incFn,hi){let s=`<table data-mat="${mat}">`;for(let r=0;r<n;r++){const row=incFn(r);
+    s+=`<tr data-row="${r}" class="${r===hi?'rowhi':''}">`;
+    for(let c=0;c<nbit;c++){const one=row.includes(c);s+=`<td data-col="${c}" class="${one?'one':''}">${one?'1':'·'}</td>`;}
+    s+='</tr>';}s+='</table>';return s;}
+  host.innerHTML=
+    `<div class="matone"><div style="color:${C.a}">&part;<sub>A</sub> = H<sub>A</sub></div>${tbl('A',S.nA,nbitsA(),aIncBits,rowA)}<div class="axlbl">rows = checks<br>cols = bits</div></div>`+
+    `<div class="matone"><div style="color:${C.b}">&part;<sub>B</sub> = H<sub>B</sub></div>${tbl('B',S.nB,nbitsB(),bIncBits,rowB)}</div>`;
+}
+
+//--- highlight helpers ---
+function setStroke(el,col,w,op){el.setAttribute('stroke',col);if(w)el.setAttribute('stroke-width',w);if(op!=null)el.setAttribute('opacity',op);}
+function paintTypeEl(el,col){const k=el.dataset.k,kk=el.dataset.kk;
+  if(k==='vert'||kk==='Adot'||kk==='Bdot'){el.setAttribute('stroke',col);el.setAttribute('stroke-width',3);if(k==='vert')el.setAttribute('fill',col);else{el.setAttribute('r',6.5);}}
+  else if(k==='face'){el.setAttribute('fill',col);el.setAttribute('opacity',1);}
+  else setStroke(el,col,el.dataset.kk?7:5,1);}
+
+//================= the one figure =================
+function buildFig(){
+  const tip=document.getElementById('fig-tip');
+  let cur=null;
+  let sel=null;                     // {kind:'vert'|'face',i,j}
+  const kindTerm={vert:'verts',face:'faces',hq:'qh',vq:'qv'};
+
+  function termEls(t){return [...document.querySelectorAll('.term[data-t="'+t+'"]')];}
+  function hlTerm(t,on){termEls(t).forEach(e=>e.classList.toggle('hl',on));}
+  function clearTerms(){document.querySelectorAll('.term.hl').forEach(e=>e.classList.remove('hl'));}
+
+  function baseTip(){tip.textContent='Left: each ∂ is a parity-check matrix — hover a row to see one check.   Middle/right: hover a term or the lattice to link them; click a star to read ∂₁ = [∂A⊗I | I⊗∂B] off the picture.';}
+
+  function updateResult(){const el=document.getElementById('result-line');if(!el)return;
+    const nA=S.nA,nB=S.nB, n=nbitsA()*nB + nA*nbitsB();   // qubits = |A-bits|·nB + nA·|B-bits|
+    if(S.pbcA&&S.pbcB)
+      el.innerHTML=`&rArr; <b>toric code</b> &nbsp;[[${n}, 2, ${Math.min(nA,nB)}]]`;
+    else if(!S.pbcA&&!S.pbcB)
+      el.innerHTML=`&rArr; <b>open boundaries</b> &mdash; a stabiliser state (k = 0), ${n} qubits`;
+    else // one periodic, one open → cylinder, k=1; logical loops the periodic direction
+      el.innerHTML=`&rArr; <b>cylinder</b> (one periodic, one open) &nbsp;[[${n}, 1, ${S.pbcA?nA:nB}]]`;}
+
+  function applyState(){
+    cur.clearAll(); clearTerms(); updateResult();
+    renderMats(sel&&sel.kind==='vert'?sel.i:-1, sel&&sel.kind==='vert'?sel.j:-1);
+    if(sel)paintAnatomy(sel); else baseTip();
+  }
+
+  //--- parity-check explanation (left panel): a row of ∂ = one check ---
+  function matRowHov(which,i){
+    document.querySelectorAll('#mat-host tr.rowhov,#mat-host tr.rowhi').forEach(t=>t.classList.remove('rowhov','rowhi'));
+    const tr=document.querySelector(`#mat-host table[data-mat="${which}"] tr[data-row="${i}"]`);if(tr)tr.classList.add('rowhov');}
+  function parityCheck(which,i){            // a row of ∂ = a parity check summing its incident bits
+    cur.clearAll();
+    const ax=which==='A'?cur.axA:cur.axB, col=which==='A'?C.a:C.b;
+    const bits=which==='A'?aIncBits(i):bIncBits(i);
+    paintTypeEl(ax.dot[i],col);
+    bits.forEach(e=>{if(ax.seg[e])setStroke(ax.seg[e],col,7,1);});
+    matRowHov(which,i); clearTerms(); hlTerm(which==='A'?'A0':'B0',true);
+    const list=bits.map(e=>'bit '+e).join(', ');
+    tip.textContent = bits.length>1
+      ? `Parity check ${i} of code ${which}  =  row ${i} of ∂${which}.\n`+
+        `It sums the two data bits on its edges (${list}) and requires even parity (their sum mod 2 = 0).\n`+
+        `The 1s in the row are exactly those bits — that is all a parity-check matrix is.`
+      : `Boundary parity check ${i} of code ${which}  =  row ${i} of ∂${which}  (open / rough end).\n`+
+        `Here it reads just a single data bit (${list}) — a weight-1 check.`;
+  }
+  function dataBit(which,i){                // a column of ∂ = a data bit, read by the checks at its ends
+    cur.clearAll();
+    const ax=which==='A'?cur.axA:cur.axB, col=which==='A'?C.a:C.b;
+    const checks=which==='A'?aAdjChecks(i):bAdjChecks(i);
+    if(ax.seg[i])setStroke(ax.seg[i],col,7,1);
+    checks.forEach(c=>paintTypeEl(ax.dot[c],col));
+    clearTerms(); hlTerm(which==='A'?'A1':'B1',true);
+    tip.textContent=`Data bit ${i} of code ${which}  =  column ${i} of ∂${which}.\n`+
+      `It sits on one edge and is read by the parity checks at its endpoints (${checks.map(c=>'check '+c).join(', ')}).`;
+  }
+
+  function paintAnatomy(s){
+    Object.values(cur.V).forEach(c=>c.setAttribute('opacity',0.3));
+    [...Object.values(cur.HQ).flat(),...Object.values(cur.VQ).flat()].forEach(e=>setStroke(e,C.q,2.6,0.14));
+    const qs = s.kind==='vert'?starQubits(s.i,s.j):faceQubits(s.i,s.j);
+    qs.forEach(q=>{const arr=(q.k==='hq'?cur.HQ:cur.VQ)[q.i+'_'+q.j]||[];arr.forEach(e=>setStroke(e,q.via==='A'?C.a:C.b,6,1));});
+    if(s.kind==='vert'){const v=cur.V[s.i+'_'+s.j];v.setAttribute('opacity',1);v.setAttribute('fill',C.x);v.setAttribute('r',8);
+      paintTypeEl(cur.axA.dot[s.i],C.a);paintTypeEl(cur.axB.dot[s.j],C.b);
+      hlTerm('verts',true);
+      const ra=aIncBits(s.i),rb=bIncBits(s.j);
+      tip.textContent =
+        `X-check (i=${s.i}, j=${s.j})  =  ∂₁ row of vertex (A-check ${s.i} ⊗ B-check ${s.j})\n`+
+        `  ∂A⊗I :  ∂A row ${s.i} = {${ra.join(',')}}  →  horizontal qubits  (teal) — same ∂A pattern in every B-row\n`+
+        `  I⊗∂B :  ∂B row ${s.j} = {${rb.join(',')}}  →  vertical qubits   (purple)`;
+    }else{
+      const m=cur.F[s.i+'_'+s.j];m.setAttribute('opacity',1);m.setAttribute('fill',C.z);
+      hlTerm('faces',true);
+      tip.textContent =
+        `Z-check (plaquette, A-bit ${s.i} ⊗ B-bit ${s.j})  =  ∂₂ column\n`+
+        `  ∂A⊗I :  → vertical qubits  (teal)\n`+
+        `  I⊗∂B :  → horizontal qubits (purple)   — the dual of the star`;
+    }
+  }
+
+  // which factor each lattice kind splits into (A-factor, B-factor)
+  const kindFactors={vert:['A0','B0'],face:['A1','B1'],hq:['A1','B0'],vq:['A0','B1']};
+  function hoverSite(k,i,j){
+    cur.clearAll();
+    const [aTxt,bTxt,typ,cc]=identTxt(k,i,j);
+    const col={x:C.x,z:C.z,q:C.ink}[cc];
+    if(k==='vert'){cur.V[i+'_'+j].setAttribute('fill',col);cur.V[i+'_'+j].setAttribute('r',8);}
+    else if(k==='face'){cur.F[i+'_'+j].setAttribute('fill',col);cur.F[i+'_'+j].setAttribute('opacity',1);}
+    else (cur[k==='hq'?'HQ':'VQ'][i+'_'+j]||[]).forEach(e=>setStroke(e,col,6,1));
+    const ai=+aTxt.split(' ')[1], bi=+bTxt.split(' ')[1];
+    if(aTxt.includes('check'))paintTypeEl(cur.axA.dot[ai],C.a);else setStroke(cur.axA.seg[ai],C.a,7,1);
+    if(bTxt.includes('check'))paintTypeEl(cur.axB.dot[bi],C.b);else setStroke(cur.axB.seg[bi],C.b,7,1);
+    const [fa,fb]=kindFactors[k];
+    clearTerms();hlTerm(kindTerm[k],true);hlTerm(fa,true);hlTerm(fb,true);
+    tip.textContent=`${aTxt} ⊗ ${bTxt}  =  ${typ}`;
+  }
+  // term/type → {lattice objects, A-factor on axis, B-factor on axis}
+  const SPEC={
+    verts:{lats:['verts'], aF:['A0'], bF:['B0'], name:'C₀ = A₀⊗B₀ — vertices (X-checks). Its factors light up too: A₀ (A-checks) and B₀ (B-checks) on the axes.'},
+    faces:{lats:['faces'], aF:['A1'], bF:['B1'], name:'C₂ = A₁⊗B₁ — faces (Z-checks), from A₁ (A-bits) × B₁ (B-bits).'},
+    qh:{lats:['qh'], aF:['A1'], bF:['B0'], name:'A₁⊗B₀ — horizontal qubits, from A₁ (A-bits) × B₀ (B-checks).'},
+    qv:{lats:['qv'], aF:['A0'], bF:['B1'], name:'A₀⊗B₁ — vertical qubits, from A₀ (A-checks) × B₁ (B-bits).'},
+    qubits:{lats:['qh','qv'], aF:['A1','A0'], bF:['B0','B1'], name:'C₁ = A₁⊗B₀ ⊕ A₀⊗B₁ — all qubits (the two ways to pair a bit with a check).'},
+    A0:{lats:[], aF:['A0'], bF:[], name:'A₀ — code A’s checks (the dots on the top axis).'},
+    A1:{lats:[], aF:['A1'], bF:[], name:'A₁ — code A’s bits (the segments on the top axis).'},
+    B0:{lats:[], aF:[], bF:['B0'], name:'B₀ — code B’s checks (the dots on the left axis).'},
+    B1:{lats:[], aF:[], bF:['B1'], name:'B₁ — code B’s bits (the segments on the left axis).'}
+  };
+  const typeCol={verts:C.x,faces:C.z,qh:C.a,qv:C.b};
+  function hoverType(t,viaText){
+    cur.clearAll();
+    const sp=SPEC[t]; if(!sp)return;
+    sp.lats.forEach(L=>cur.types[L].forEach(e=>paintTypeEl(e,typeCol[L])));
+    sp.aF.forEach(f=>cur.types[f].forEach(e=>paintTypeEl(e,C.a)));
+    sp.bF.forEach(f=>cur.types[f].forEach(e=>paintTypeEl(e,C.b)));
+    clearTerms();hlTerm(t,true);sp.aF.forEach(f=>hlTerm(f,true));sp.bF.forEach(f=>hlTerm(f,true));
+    tip.textContent=(viaText?viaText+'\n':'')+sp.name;
+  }
+
+  function wire(api){
+    cur=api; sel=null;          // a fresh lattice (size or boundary change) → clear selection
+    function bind(el){const k=el.dataset.k,i=+el.dataset.i,j=+el.dataset.j;const h=el.__hit||el;
+      h.addEventListener('mouseenter',()=>hoverSite(k,i,j));
+      h.addEventListener('mouseleave',()=>applyState());
+      if(k==='vert'||k==='face')h.addEventListener('click',()=>{
+        sel=(sel&&sel.kind===k&&sel.i===i&&sel.j===j)?null:{kind:k,i,j};applyState();});}
+    Object.values(api.V).forEach(bind);Object.values(api.F).forEach(bind);
+    Object.values(api.HQ).forEach(a=>bind(a[0]));Object.values(api.VQ).forEach(a=>bind(a[0]));
+    // axis dots = single parity checks, axis edges = single data bits
+    api.axA.dot.forEach((d,i)=>{d.__hit.addEventListener('mouseenter',()=>parityCheck('A',i));d.__hit.addEventListener('mouseleave',()=>applyState());});
+    api.axB.dot.forEach((d,j)=>{d.__hit.addEventListener('mouseenter',()=>parityCheck('B',j));d.__hit.addEventListener('mouseleave',()=>applyState());});
+    api.axA.seg.forEach((sg,i)=>{sg.__hit.addEventListener('mouseenter',()=>dataBit('A',i));sg.__hit.addEventListener('mouseleave',()=>applyState());});
+    api.axB.seg.forEach((sg,j)=>{sg.__hit.addEventListener('mouseenter',()=>dataBit('B',j));sg.__hit.addEventListener('mouseleave',()=>applyState());});
+    applyState();
+  }
+  const fig=makeProductFigure(document.getElementById('fig-host'),{wire});
+
+  // matrix rows are parity checks too (hover a row → same as hovering its axis dot)
+  const matHost=document.getElementById('mat-host');
+  matHost.addEventListener('mouseover',e=>{const tr=e.target.closest('tr');if(!tr||!cur)return;
+    parityCheck(tr.closest('table').dataset.mat,+tr.dataset.row);});
+  matHost.addEventListener('mouseleave',()=>{if(cur)applyState();});
+
+  // definition-term hovers
+  const viaMsg={
+    '∂_A⊗I':'∂A ⊗ I : code A’s checks act along x — the SAME ∂A pattern copied into every B-row. That copying is what ⊗I means.',
+    'I⊗∂_B':'I ⊗ ∂B : code B’s checks act along y — the SAME ∂B pattern copied into every A-column.'};
+  document.querySelectorAll('.term[data-t]').forEach(el=>{
+    const t=el.dataset.t, via=el.dataset.via;
+    el.addEventListener('mouseenter',()=>{if(cur)hoverType(t, via?viaMsg[via]:null);});
+    el.addEventListener('mouseleave',()=>{if(cur)applyState();});
+  });
+
+  // (boundary is toggled per-axis by clicking the axis labels inside the SVG)
+  fig.render();
+}
+
+C.ink=cs.getPropertyValue('--ink').trim();
+buildFig();
+fire();
+
+// assemble the contact email at runtime so scrapers reading the static HTML never see it
+(function(){var el=document.getElementById('contact-email');if(!el)return;
+  var user=['m','a','i','l'].join(''), dom=['lutzm','ax'].join('.');
+  var addr=user+String.fromCharCode(64)+dom;
+  el.href='mai'+'lto:'+addr; el.textContent=addr;})();
+</script>
+</body>
+</html>
